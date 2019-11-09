@@ -9,11 +9,17 @@ class Application extends Component {
         posts: [],
     };
 
-    async componentDidMount() {
-        const snapshot = await firestore.collection('posts').get();
-        const posts = snapshot.docs.map(collectIdsAndDocs);
+    unsubscribe = null;
 
-        this.setState({ posts });
+    async componentDidMount() {
+        this.unsubscribe = firestore.collection('posts').onSnapshot(snapshot => {
+            const posts = snapshot.docs.map(collectIdsAndDocs);
+            this.setState({ posts });
+        });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe();
     }
 
     handleCreate = async post => {
