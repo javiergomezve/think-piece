@@ -1,33 +1,42 @@
 import React, { Component } from 'react';
 
-import { firestore } from '../firebase';
+import { firestore, auth } from '../firebase';
 import {collectIdsAndDocs} from "../utils";
 import Posts from './Posts';
+import Authentication from "./Authentication";
 
 class Application extends Component {
     state = {
         posts: [],
+        user: null,
     };
 
-    unsubscribe = null;
+    unsubscribeForFirestore = null;
+    unsubscribeForAuth = null;
 
     async componentDidMount() {
-        this.unsubscribe = firestore.collection('posts').onSnapshot(snapshot => {
+        this.unsubscribeForFirestore = firestore.collection('posts').onSnapshot(snapshot => {
             const posts = snapshot.docs.map(collectIdsAndDocs);
             this.setState({ posts });
+        });
+
+        this.unsubscribeForAuth = auth.onAuthStateChanged(user => {
+            this.setState({ user });
         });
     }
 
     componentWillUnmount() {
-        this.unsubscribe();
+        this.unsubscribeForFirestore();
+        this.unsubscribeForAuth();
     }
 
     render() {
-        const { posts } = this.state;
+        const { posts, user } = this.state;
 
         return (
             <main className="Application">
                 <h1>Think Piece</h1>
+                <Authentication user={user} />
                 <Posts posts={posts} />
             </main>
         );
