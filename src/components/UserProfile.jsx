@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import {auth, firestore} from '../firebase';
+import {auth, firestore, storage} from '../firebase';
 
 class UserProfile extends Component {
 
@@ -14,6 +14,10 @@ class UserProfile extends Component {
         return firestore.doc(`users/${this.uid}`);
     }
 
+    get file() {
+        return this.imageInput && this.imageInput.files[0];
+    }
+
     handleChange = event => {
         const { name, value } = event.target;
         this.setState({ [name]: value });
@@ -25,6 +29,12 @@ class UserProfile extends Component {
 
         if (displayName) {
             this.userRef.update({ displayName });
+        }
+
+        if (this.file) {
+            storage.ref(``).child('user-profiles').child(this.uid).child(this.file.name).put(this.file)
+                .then(response => response.ref.getDownloadURL())
+                .then(photoURL => this.userRef.update({ photoURL }))
         }
 
     };
