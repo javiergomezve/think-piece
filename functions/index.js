@@ -14,3 +14,20 @@ exports.getAllPosts = functions.https.onRequest(async (request, response) => {
 
     response.json({ posts });
 });
+
+
+exports.sanitizeContent = functions.firestore.document('post/{postId')
+    .onWrite(async change => {
+        if (!change.after.exists) return;
+
+        const { content, sanitized } = change.after.data();
+
+        if (content && !sanitized) {
+            return change.after.ref.update({
+                content: content.replace(/CoffeScript/g, '****************'),
+                sanitized: true,
+            })
+        }
+
+        return null;
+    });
